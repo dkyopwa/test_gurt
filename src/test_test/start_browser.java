@@ -60,9 +60,9 @@ public class start_browser {
 				} else {
 					// Linux x64
 					try {
-						driverFile = new URL("http://chromedriver.storage.googleapis.com/2.33/chromedriver_linux64.zip");
+						driverFile = new URL("http://chromedriver.storage.googleapis.com/2.33/chromedriver_linux32.zip");
 						fileArchive = "chromedriver_linux64.zip";
-						fileDriver = "chromedriver";
+						fileDriver = new File(".").getAbsolutePath() + "/chromedriver";
 					} catch (MalformedURLException e) {
 						System.out.println("Can not open URL with browser driver");
 						return null;
@@ -88,7 +88,7 @@ public class start_browser {
 					try {
 						driverFile = new URL(strURL);
 						fileArchive = "geckodriver-v0.19.1-linux" + archModel + ".tar.gz";
-						fileDriver = "geckodriver";
+						fileDriver = new File(".").getAbsolutePath() + "/geckodriver";
 					} catch (MalformedURLException e) {
 						System.out.println("Can not open URL with browser driver");
 						return null;
@@ -100,6 +100,7 @@ public class start_browser {
             throw new IllegalArgumentException("Invalid load browser '" + currBrowserName + "'");
 		}
 		
+		// dowwnload
 		ReadableByteChannel rbc;
 		try {
 			rbc = Channels.newChannel(driverFile.openStream());
@@ -130,49 +131,63 @@ public class start_browser {
 			System.out.println("Can not load file driver");
 			return null;
 		}
-		
-		// zip
-		File file = new File(fileDriver);
-		ZipFile zip = null;
-		try {
-			zip = new ZipFile(fileArchive);
-		} catch (IOException e) {
-			System.out.println("Error opening zip file");
+
+		// extract
+		if (currBrowserName.equalsIgnoreCase("firefox") && !os.contains("windows")) {
+			 try
+		        {
+		            Process proc = Runtime.getRuntime().exec("tar -xzf geckodriver-v0.19.1-linux64.tar.gz"); 
+		            proc.waitFor();
+		            proc.destroy();
+		        }
+		        catch (Exception e)
+		        {
+		            System.out.println("Error unpacking firefox driver");
+		        }
+		} else {		
+			// zip
+			File file = new File(fileDriver);
+			ZipFile zip = null;
 			try {
-				if (zip != null)
-					zip.close();
-			} catch (IOException e1) {
+				zip = new ZipFile(fileArchive);
+			} catch (IOException e) {
 				System.out.println("Error opening zip file");
-			}
-			return null;
-		}
-        Enumeration<? extends ZipEntry> entries = zip.entries();
-
-        while (entries.hasMoreElements()) {
-            ZipEntry entry = (ZipEntry) entries.nextElement();
-            System.out.println(entry.getName());
-
-            if (entry.isDirectory()) {
-                new File(file.getParent(), entry.getName()).mkdirs();
-            } else {
-                try {
-					write(zip.getInputStream(entry), new BufferedOutputStream(new FileOutputStream(new File(file.getParent(), entry.getName()))));
-				} catch (Exception e) {
-					System.out.println("Error unpacking zip file");
-					try {
+				try {
+					if (zip != null)
 						zip.close();
-					} catch (IOException e1) {
-						System.out.println("Error unpacking zip file");
-					}
-					return null;
+				} catch (IOException e1) {
+					System.out.println("Error opening zip file");
 				}
-            }
-        }
-        try {
-			zip.close();
-		} catch (IOException e) {
+				return null;
+			}
+	        Enumeration<? extends ZipEntry> entries = zip.entries();
+	
+	        while (entries.hasMoreElements()) {
+	            ZipEntry entry = (ZipEntry) entries.nextElement();
+	            System.out.println(entry.getName());
+	
+	            if (entry.isDirectory()) {
+	                new File(file.getParent(), entry.getName()).mkdirs();
+	            } else {
+	                try {
+						write(zip.getInputStream(entry), new BufferedOutputStream(new FileOutputStream(new File(file.getParent(), entry.getName()))));
+					} catch (Exception e) {
+						System.out.println("Error unpacking zip file");
+						try {
+							zip.close();
+						} catch (IOException e1) {
+							System.out.println("Error unpacking zip file");
+						}
+						return null;
+					}
+	            }
+	        }
+	        try {
+				zip.close();
+			} catch (IOException e) {
+			}
 		}
-
+		
 		return fileDriver;
 	}
 
@@ -214,3 +229,4 @@ public class start_browser {
 		return currDriverPath;
 	}
 }
+

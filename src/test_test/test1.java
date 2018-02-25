@@ -3,6 +3,7 @@ package test_test;
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
@@ -13,7 +14,7 @@ public class test1 {
 	
 	@Parameters({ "browser", "driver_path" })
 	@BeforeTest
-	public void start(String browserName, String driverPath) {
+	public void start(@Optional("chrome") String browserName, @Optional("") String driverPath) {
 		start_browser brows = new start_browser(browserName, driverPath);
 		gp = new gurtam_page(brows.getDriver(), brows.getBrowserName());
 	}
@@ -47,3 +48,4 @@ public class test1 {
 		gp.closePages();
 	}
 }
+
